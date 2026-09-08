@@ -34,17 +34,19 @@ int main(int argc, char** argv) {
 
 ### 补充：三种"常量"的区别
 
-| 写法 | 性质 |
-|---|---|
-| `constexpr int width = 64;` | 编译期常量整数 |
-| `const int x = 64;` | 只读，但不一定编译期确定 |
-| `int y = 64;` | 普通变量，可改 |
+| 写法                          | 性质                     |
+| ----------------------------- | ------------------------ |
+| `constexpr int width = 64;` | 编译期常量整数           |
+| `const int x = 64;`         | 只读，但不一定编译期确定 |
+| `int y = 64;`               | 普通变量，可改           |
 
 ## 1. 线段的参数方程
 
 已知线段两端点 $A(a_x, a_y)$ 和 $B(b_x, b_y)$，线段上任意一点可以写成：
 
-$$P(t) = (1-t)\cdot A + t\cdot B,\quad t \in [0,1]$$
+$$
+P(t) = (1-t)\cdot A + t\cdot B,\quad t \in [0,1]
+$$
 
 - $t=0$ 时，$P = A$（在起点）
 - $t=1$ 时，$P = B$（在终点）
@@ -81,10 +83,10 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
 
 `round` 的作用是四舍五入取整，把浮点坐标变成整数像素坐标：
 
-| 方式 | 23.5 → | 23.2 → | -3.7 → |
-|---|---|---|---|
-| `(int)x` 强转 | 23（直接砍掉小数） | 23 | -3 |
-| `round(x)` | 24（取最近的整数） | 23 | -4 |
+| 方式            | 23.5 →            | 23.2 → | -3.7 → |
+| --------------- | ------------------ | ------- | ------- |
+| `(int)x` 强转 | 23（直接砍掉小数） | 23      | -3      |
+| `round(x)`    | 24（取最近的整数） | 23      | -4      |
 
 强转是**截断**（向零取整），画出来的线会系统性地偏向左下，产生偏差；`round` 取最近的像素，画出的线最贴近真实直线，视觉上最平滑。
 
@@ -144,13 +146,17 @@ sys     0m0.004s
 
 原写法循环每次都要算：
 
-$$y(x) = a_y + (x - a_x)\cdot\frac{b_y - a_y}{b_x - a_x}$$
+$$
+y(x) = a_y + (x - a_x)\cdot\frac{b_y - a_y}{b_x - a_x}
+$$
 
 包含 1 次除法 + 1 次乘法 + 若干加减。
 
 但循环里 $x - a_x$ 是连续取 $0, 1, 2, 3, \dots$ 的，也就是说 $y$ 的值构成一个**等差数列**：
 
-$$y_0 = a_y,\quad y_1 = y_0 + k,\quad y_2 = y_1 + k,\ \dots$$
+$$
+y_0 = a_y,\quad y_1 = y_0 + k,\quad y_2 = y_1 + k,\ \dots
+$$
 
 其中斜率 $k = \dfrac{b_y - a_y}{b_x - a_x}$ 在同一条线上是常数。既然相邻两项只差一个固定的 $k$，就没必要每次从头乘，直接累加即可：
 
@@ -214,10 +220,10 @@ for (int x = ax; x <= bx; x++) {
 
 以红线 $k = 50/55 \approx 0.909$ 为例：
 
-| x | 7 | 8 | 9 | 10 | 11 |
-|---|---|---|---|---|---|
-| ierror 累加后 | 0.91 | 0.82 | 0.73 | 0.64 | 0.55 |
-| y | 3（进位后） | 4 | 5 | 6 | 7 |
+| x             | 7           | 8    | 9    | 10   | 11   |
+| ------------- | ----------- | ---- | ---- | ---- | ---- |
+| ierror 累加后 | 0.91        | 0.82 | 0.73 | 0.64 | 0.55 |
+| y             | 3（进位后） | 4    | 5    | 6    | 7    |
 
 每步 `ierror + 0.91` → 超 0.5 则 `y+1`、`ierror − 1`，几乎每格都进位，和真值 $y = 3 + 0.909(x-7)$ 四舍五入的结果完全一致。
 
@@ -225,11 +231,15 @@ for (int x = ax; x <= bx; x++) {
 
 上一版还有三个浮点量：
 
-$$\text{error} = \frac{|b_y - a_y|}{b_x - a_x},\quad \text{ierror 每次加 error},\quad \text{阈值 } 0.5$$
+$$
+\text{error} = \frac{|b_y - a_y|}{b_x - a_x},\quad \text{ierror 每次加 error},\quad \text{阈值 } 0.5
+$$
 
 观察代码会发现，它们只以"比较大小"的形式出现（`ierror + error > 0.5` 这类判断）。**不等式两边同乘一个正数，结果不变**，那就全部乘以 $2(b_x - a_x)$：
 
-$$\text{error}\cdot 2\Delta x = \frac{|\Delta y|}{\Delta x}\cdot 2\Delta x = \underbrace{2|\Delta y|}_{\text{整数！}},\qquad 0.5\cdot 2\Delta x = \underbrace{\Delta x}_{\text{整数！}}$$
+$$
+\text{error}\cdot 2\Delta x = \frac{|\Delta y|}{\Delta x}\cdot 2\Delta x = \underbrace{2|\Delta y|}_{\text{整数！}},\qquad 0.5\cdot 2\Delta x = \underbrace{\Delta x}_{\text{整数！}}
+$$
 
 除法没了、小数没了，只剩整数。
 
@@ -264,10 +274,10 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
 
 放大后的量：每步 `ierror += 100`，阈值 55，超了就 `−110`：
 
-| x | 7 | 8 | 9 | 10 | 11 |
-|---|---|---|---|---|---|
+| x    | 7                                 | 8                         | 9             | 10            | 11            |
+| ---- | --------------------------------- | ------------------------- | ------------- | ------------- | ------------- |
 | 逐步 | +100=100>55 → y+1，−110 → −10 | +100=90>55 → y+1 → −20 | → 80 → −30 | → 70 → −40 | → 60 → −50 |
-| y | 4 | 5 | 6 | 7 | 8 |
+| y    | 4                                 | 5                         | 6             | 7             | 8             |
 
 和上一版浮点结果逐点一致——因为两边只是同乘 $2\Delta x$ 的缩放，判断时机完全相同。
 
@@ -310,7 +320,9 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
 
 ## 8. 附：投影公式为什么长这样
 
-$$x_{screen} = (x+1)\cdot\frac{\text{width}}{2},\qquad y_{screen} = (y+1)\cdot\frac{\text{height}}{2}$$
+$$
+x_{screen} = (x+1)\cdot\frac{\text{width}}{2},\qquad y_{screen} = (y+1)\cdot\frac{\text{height}}{2}
+$$
 
 核心就一件事：**把 $[-1,1]$ 这个区间线性映射到 $[0, \text{width}]$ 这个区间**。
 
