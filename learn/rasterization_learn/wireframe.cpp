@@ -3,8 +3,10 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include "geometry.h"   // 用仓库自带的 vec3
-#include "tgaimage.h"  // 用仓库自带的 TGAImage
+#include "../../geometry.h"   // 项目根目录的 vec3
+#include "../../tgaimage.h"   // 项目根目录的 TGAImage
+#include <algorithm>
+#include <ctime>
 using namespace std;
 struct Model {
     vector<vec3> verts;              // 所有顶点
@@ -12,6 +14,7 @@ struct Model {
 
     Model(const char* filename) {
         ifstream in(filename);
+        if (!in) { cerr << "打不开模型文件: " << filename << endl; exit(1); }
         string line;
         while (getline(in, line)) {
             istringstream iss(line);
@@ -63,24 +66,54 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
     }
 }
 
+
+void cover_triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuffer, TGAColor color) {
+    int min_x = std::min({ax, bx, cx});
+    int max_x = std::max({ax, bx, cx});
+    int min_y = std::min({ay, by, cy}); 
+    int max_y = std::max({ay, by, cy});
+    
+    double total_area = (ax-bx)*(ay-cy) - (ax-cx)*(ay-by);
+    if (total_area<1) return;
+    
+    for(int i = min_y; i <= max_y; i++) {
+        for(int j = min_x; j <= max_x; j++) {
+            int a = (bx - ax) * (i - ay) - (by - ay) * (j - ax);
+            int b = (cx - bx) * (i - by) - (cy - by) * (j - bx);
+            int c = (ax - cx) * (i - cy) - (ay - cy) * (j - cx);
+            if((a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0)) {
+                framebuffer.set(j, i, color);
+            }
+        }
+    }
+}
+
 int main() {
     Model model("obj/african_head/african_head.obj");
     constexpr int width = 800,height = 800;
+    srand(std::time(nullptr));
     TGAImage framebuffer(width, height, TGAImage::RGB);
     constexpr TGAColor white = {255, 255, 255, 255};
 
     for(int i = 0; i< model.faces.size(); i++) {
         const auto &face = model.faces[i];
-        for(int j = 0; j< face.size(); j++) {
+        for(int j = 0; j< face.size(); j+=3) {
             int idx1 = face[j];
             int idx2 = face[(j+1) % face.size()];
+            int idx3 = face[(j+2) % face.size()];
             vec3 v1 = model.verts[idx1];
             vec3 v2 = model.verts[idx2];
+            vec3 v3 = model.verts[idx3];
             int x1 = (v1.x + 1.) * width / 2.;
             int y1 = (v1.y + 1.) * height / 2.;
             int x2 = (v2.x + 1.) * width / 2.;
             int y2 = (v2.y + 1.) * height / 2.;
-            line(x1, y1, x2, y2, framebuffer, white);
+            int x3 = (v3.x + 1.) * width / 2.;
+            int y3 = (v3.y + 1.) * height / 2.;
+            TGAColor color = { (unsigned char)(rand()%256),
+                       (unsigned char)(rand()%256),
+                       (unsigned char)(rand()%256), 255 };
+            cover_triangle(x1, y1, x2, y2, x3, y3, framebuffer, color);
         }
     }
     framebuffer.write_tga_file("output2.tga");

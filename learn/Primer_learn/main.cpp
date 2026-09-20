@@ -1,7 +1,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include "tgaimage.h"
+#include "../../geometry.h"   // 项目根目录的 vec3
+#include "../../tgaimage.h"   // 项目根目录的 TGAImage
 #include <algorithm>
 
 void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color) {

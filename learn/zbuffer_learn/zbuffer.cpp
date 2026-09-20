@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include "../geometry.h"     // 上级目录的 vec3
-#include "../tgaimage.h"     // 上级目录的 TGAImage
+#include "../../geometry.h"   // 项目根目录的 vec3
+#include "../../tgaimage.h"   // 项目根目录的 TGAImage
 using namespace std;
 struct Model {
     vector<vec3> verts;              // 所有顶点
@@ -13,6 +13,7 @@ struct Model {
 
     Model(const char* filename) {
         ifstream in(filename);
+        if (!in) { cerr << "打不开模型文件: " << filename << endl; exit(1); }
         string line;
         while (getline(in, line)) {
             istringstream iss(line);
