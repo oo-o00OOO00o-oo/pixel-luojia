@@ -107,21 +107,32 @@ int main() {
     // zbuffer 分配 + 初始化
     std::vector<double> zbuffer(width*height, -1e9);
 
+    vec3 eye{1, 1, 3}, center{0, 0, 0}, up{0, 1, 0};
+    mat<4,4> M = lookat(eye, center, up);
+
+    double c = norm(eye - center);       // 相机到目标的距离 = 透视强度
+    mat<4,4> P;
+    P[0] = {1, 0, 0, 0};
+    P[1] = {0, 1, 0, 0};
+    P[2] = {0, 0, 1, 0};
+    P[3] = {0, 0, -1./c, 1};             // 把 z 折算进 w → 透视除法生效
+
+    mat<4,4> MVP = P * M;                // 先视图后投影（从右往左读）
+
     for (int i = 0; i < (int)model.faces.size(); i++) {
         const auto &face = model.faces[i];
-        mat<4,4> M = lookat({1,1,1}, {0,0,0}, {0,1,0});
         vec3 v1 = model.verts[face[0]];
         vec3 v2 = model.verts[face[1]];
         vec3 v3 = model.verts[face[2]];
 
-        vec4 t1 = M * vec4{v1.x, v1.y, v1.z, 1.0};
-        vec4 t2 = M * vec4{v2.x, v2.y, v2.z, 1.0};
-        vec4 t3 = M * vec4{v3.x, v3.y, v3.z, 1.0};
+        vec4 t1 = MVP * vec4{v1.x, v1.y, v1.z, 1.0};
+        vec4 t2 = MVP * vec4{v2.x, v2.y, v2.z, 1.0};
+        vec4 t3 = MVP * vec4{v3.x, v3.y, v3.z, 1.0};
 
-        v1 = t1.xyz();
-        v2 = t2.xyz();
-        v3 = t3.xyz();
-          
+        v1 = {t1.x/t1.w, t1.y/t1.w, t1.z/t1.w};
+        v2 = {t2.x/t2.w, t2.y/t2.w, t2.z/t2.w};
+        v3 = {t3.x/t3.w, t3.y/t3.w, t3.z/t3.w};
+
         vec3 n  = normalized(cross(v1-v2,v1-v3));
         vec3 light_dir = normalized(vec3{1,1,1});
         double intensity = n * light_dir;   // operator* 即点积
