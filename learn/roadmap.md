@@ -79,7 +79,7 @@ vector<vector<int>> faces, face_norms, face_tex;   // f 行三段索引（已减
 
 ---
 
-## 第 7 站：Phong 光照 + 高光贴图
+## 第 7 站：Phong 光照 + 高光贴图 ✅（phong_learn/）
 
 **概念**：
 - Phong 模型 = 环境光 + 漫反射 + 高光：$I = k_a + k_d(\vec n\cdot\vec l) + k_s\max(0,\vec r\cdot\vec v)^s$
@@ -97,7 +97,7 @@ vector<vector<int>> faces, face_norms, face_tex;   // f 行三段索引（已减
 
 ---
 
-## 第 8 站：法线贴图与切空间（最难的一站）
+## 第 8 站：法线贴图与切空间 ✅（normalmap_learn/）
 
 **概念**：
 - 法线贴图 `african_head_nm_tangent.tga`：RGB 编码扰动法线，让低模表面"假装"有细节；
@@ -115,7 +115,7 @@ vector<vector<int>> faces, face_norms, face_tex;   // f 行三段索引（已减
 
 ---
 
-## 第 9 站：阴影映射（Shadow mapping）
+## 第 9 站：阴影映射（Shadow mapping）✅（shadow_learn/）
 
 **概念**：
 - 两遍渲染：第一遍从光源视角画深度图；第二遍相机视角，每像素变换到光源空间比较深度——"光源看不见的点就在阴影里";
